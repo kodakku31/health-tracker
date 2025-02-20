@@ -49,7 +49,7 @@ export default function SignUpForm() {
     }
 
     try {
-      const { error } = await supabase.auth.signUp({
+      console.log('Signing up with data:', {
         email: formData.email,
         password: formData.password,
         options: {
@@ -63,12 +63,29 @@ export default function SignUpForm() {
         },
       });
 
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            display_name: formData.displayName,
+            birth_date: formData.birthDate,
+            gender: formData.gender,
+            height: formData.height,
+            activity_level: formData.activityLevel,
+          },
+        },
+      });
+
+      console.log('Signup response:', { data, error });
+
       if (error) {
         throw error;
       }
 
       router.push('/auth/verify');
     } catch (err) {
+      console.error('Signup error:', err);
       const error = err as AuthError;
       setError(error.message || '登録に失敗しました。');
     } finally {
