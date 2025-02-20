@@ -1,5 +1,3 @@
-import Image from "next/image";
-
 export default function Home() {
   return (
     <div className="relative isolate px-6 pt-14 lg:px-8">
@@ -20,7 +18,7 @@ export default function Home() {
               無料で始める
             </a>
             <a
-              href="/auth/login"
+              href="/auth/signin"
               className="text-sm font-semibold leading-6 text-gray-900"
             >
               ログイン <span aria-hidden="true">→</span>
