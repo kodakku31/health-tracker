@@ -1,14 +1,13 @@
 export interface UserProfile {
   id: string;
   email: string;
-  displayName: string;
-  birthDate: Date;
+  display_name: string;
+  birth_date: string;
   gender: 'male' | 'female' | 'other';
   height: number;
-  targetWeight?: number;
-  activityLevel: 'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active';
-  createdAt: Date;
-  updatedAt: Date;
+  activity_level: 'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active' | 'extra_active';
+  created_at: string;
+  updated_at: string;
 }
 
 export interface VitalSigns {

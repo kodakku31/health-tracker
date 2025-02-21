@@ -6,27 +6,25 @@ export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
   const supabase = createMiddlewareClient({ req, res });
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  // 未認証ユーザーをログインページにリダイレクト
-  if (!session && !req.nextUrl.pathname.startsWith('/auth')) {
-    const redirectUrl = req.nextUrl.clone();
-    redirectUrl.pathname = '/auth/signin';
-    return NextResponse.redirect(redirectUrl);
+  try {
+    // セッション情報の更新のみ行う
+    await supabase.auth.getSession();
+    return res;
+  } catch (error) {
+    console.error('Middleware error:', error);
+    return res;
   }
-
-  // 認証済みユーザーを認証ページからダッシュボードにリダイレクト
-  if (session && req.nextUrl.pathname.startsWith('/auth')) {
-    const redirectUrl = req.nextUrl.clone();
-    redirectUrl.pathname = '/dashboard';
-    return NextResponse.redirect(redirectUrl);
-  }
-
-  return res;
 }
 
+// ミドルウェアを適用するパスを設定
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next
+     * - static (static files)
+     * - favicon.ico (favicon file)
+     */
+    '/((?!_next/static|_next/image|favicon.ico).*)',
+  ],
 };

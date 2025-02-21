@@ -49,7 +49,8 @@ export default function SignUpForm() {
     }
 
     try {
-      console.log('Signing up with data:', {
+      // Create auth user with metadata
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
@@ -60,33 +61,25 @@ export default function SignUpForm() {
             height: formData.height,
             activity_level: formData.activityLevel,
           },
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       });
 
-      const { data, error } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            display_name: formData.displayName,
-            birth_date: formData.birthDate,
-            gender: formData.gender,
-            height: formData.height,
-            activity_level: formData.activityLevel,
-          },
-        },
-      });
+      if (authError) {
+        if (authError.message.includes('security purposes')) {
+          throw new Error('セキュリティのため、しばらく待ってから再度お試しください。');
+        }
+        throw authError;
+      }
 
-      console.log('Signup response:', { data, error });
-
-      if (error) {
-        throw error;
+      if (!authData.user) {
+        throw new Error('ユーザー登録に失敗しました。');
       }
 
       router.push('/auth/verify');
     } catch (err) {
       console.error('Signup error:', err);
-      const error = err as AuthError;
+      const error = err as Error;
       setError(error.message || '登録に失敗しました。');
     } finally {
       setLoading(false);
