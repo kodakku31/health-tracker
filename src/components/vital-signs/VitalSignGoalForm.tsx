@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/contexts/AuthContext';
 import type { VitalSignGoal } from '@/types';
 
 interface VitalSignGoalFormProps {
@@ -12,14 +13,22 @@ interface VitalSignGoalFormProps {
 export default function VitalSignGoalForm({ goal, onSuccess }: VitalSignGoalFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
+  const formRef = useRef<HTMLFormElement>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!user) {
+      setError('ログインが必要です。');
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
     const formData = new FormData(e.currentTarget);
     const data = {
+      user_id: user.id,
       target_weight: formData.get('target_weight') ? Number(formData.get('target_weight')) : null,
       target_systolic_bp: formData.get('target_systolic_bp') ? Number(formData.get('target_systolic_bp')) : null,
       target_diastolic_bp: formData.get('target_diastolic_bp') ? Number(formData.get('target_diastolic_bp')) : null,
@@ -41,6 +50,9 @@ export default function VitalSignGoalForm({ goal, onSuccess }: VitalSignGoalForm
         if (err) throw err;
       }
 
+      if (!goal) {
+        formRef.current?.reset();
+      }
       onSuccess();
     } catch (err) {
       console.error('Error saving vital sign goal:', err);
@@ -51,7 +63,7 @@ export default function VitalSignGoalForm({ goal, onSuccess }: VitalSignGoalForm
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg shadow">
+    <form ref={formRef} onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg shadow">
       <h3 className="text-lg font-semibold mb-4">目標値を設定</h3>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

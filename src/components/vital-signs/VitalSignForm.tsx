@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/contexts/AuthContext';
 import type { VitalSign } from '@/types';
 
 interface VitalSignFormProps {
@@ -11,14 +12,22 @@ interface VitalSignFormProps {
 export default function VitalSignForm({ onSuccess }: VitalSignFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
+  const formRef = useRef<HTMLFormElement>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!user) {
+      setError('ログインが必要です。');
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
     const formData = new FormData(e.currentTarget);
     const data = {
+      user_id: user.id,
       measured_at: new Date().toISOString(),
       weight: formData.get('weight') ? Number(formData.get('weight')) : null,
       systolic_bp: formData.get('systolic_bp') ? Number(formData.get('systolic_bp')) : null,
@@ -35,7 +44,7 @@ export default function VitalSignForm({ onSuccess }: VitalSignFormProps) {
 
       if (err) throw err;
       
-      e.currentTarget.reset();
+      formRef.current?.reset();
       onSuccess();
     } catch (err) {
       console.error('Error creating vital sign:', err);
@@ -46,7 +55,7 @@ export default function VitalSignForm({ onSuccess }: VitalSignFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg shadow">
+    <form ref={formRef} onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg shadow">
       <h3 className="text-lg font-semibold mb-4">バイタルサインを記録</h3>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

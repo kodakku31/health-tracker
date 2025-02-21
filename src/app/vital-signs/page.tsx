@@ -35,10 +35,11 @@ export default function VitalSignsPage() {
       const { data, error: err } = await supabase
         .from('vital_sign_goals')
         .select('*')
+        .order('created_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
-      if (err && err.code !== 'PGRST116') throw err;
+      if (err) throw err;
       setGoal(data || undefined);
     } catch (err) {
       console.error('Error fetching goal:', err);
