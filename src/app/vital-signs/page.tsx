@@ -6,6 +6,7 @@ import VitalSignForm from '@/components/vital-signs/VitalSignForm';
 import VitalSignList from '@/components/vital-signs/VitalSignList';
 import VitalSignChart from '@/components/vital-signs/VitalSignChart';
 import VitalSignGoalForm from '@/components/vital-signs/VitalSignGoalForm';
+import VitalSignStats from '@/components/vital-signs/VitalSignStats';
 import type { VitalSign, VitalSignGoal } from '@/types';
 
 export default function VitalSignsPage() {
@@ -86,6 +87,11 @@ export default function VitalSignsPage() {
           goal={goal}
           type={selectedChart}
         />
+      </div>
+
+      <div className="bg-white p-6 rounded-lg shadow">
+        <h3 className="text-lg font-semibold mb-4">統計情報</h3>
+        <VitalSignStats vitalSigns={vitalSigns} goal={goal} />
       </div>
 
       <div className="bg-white p-6 rounded-lg shadow">

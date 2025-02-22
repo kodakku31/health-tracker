@@ -3,12 +3,13 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
+import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import type { VitalSign } from '@/types';
 
 interface VitalSignListProps {
   vitalSigns: VitalSign[];
-  onDelete: () => void;
+  onDelete: (id: string) => void;
 }
 
 export default function VitalSignList({ vitalSigns, onDelete }: VitalSignListProps) {
@@ -28,7 +29,7 @@ export default function VitalSignList({ vitalSigns, onDelete }: VitalSignListPro
         .eq('id', id);
 
       if (err) throw err;
-      onDelete();
+      onDelete(id);
     } catch (err) {
       console.error('Error deleting vital sign:', err);
       setError('記録の削除中にエラーが発生しました。');
@@ -39,7 +40,7 @@ export default function VitalSignList({ vitalSigns, onDelete }: VitalSignListPro
 
   if (vitalSigns.length === 0) {
     return (
-      <div className="text-center text-gray-500 py-8">
+      <div className="text-center py-4 text-gray-500">
         記録がありません
       </div>
     );
@@ -51,7 +52,7 @@ export default function VitalSignList({ vitalSigns, onDelete }: VitalSignListPro
         <thead className="bg-gray-50">
           <tr>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              測定日時
+              日時
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               体重
@@ -68,39 +69,49 @@ export default function VitalSignList({ vitalSigns, onDelete }: VitalSignListPro
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               メモ
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
               操作
             </th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {vitalSigns.map((sign) => (
-            <tr key={sign.id}>
+          {vitalSigns.map((vitalSign) => (
+            <tr key={vitalSign.id} className="hover:bg-gray-50">
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {format(new Date(sign.measured_at), 'yyyy/MM/dd HH:mm', { locale: ja })}
+                <Link href={`/vital-signs/${vitalSign.id}`} className="hover:text-indigo-600">
+                  {format(new Date(vitalSign.measured_at), 'PPP p', { locale: ja })}
+                </Link>
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {sign.weight ? `${sign.weight} kg` : '-'}
+                {vitalSign.weight ? `${vitalSign.weight} kg` : '-'}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {sign.systolic_bp && sign.diastolic_bp
-                  ? `${sign.systolic_bp}/${sign.diastolic_bp}`
+                {vitalSign.systolic_bp && vitalSign.diastolic_bp
+                  ? `${vitalSign.systolic_bp}/${vitalSign.diastolic_bp}`
                   : '-'}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {sign.heart_rate ? `${sign.heart_rate} bpm` : '-'}
+                {vitalSign.heart_rate ? `${vitalSign.heart_rate} bpm` : '-'}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {sign.body_temperature ? `${sign.body_temperature} ℃` : '-'}
+                {vitalSign.body_temperature ? `${vitalSign.body_temperature} ℃` : '-'}
               </td>
               <td className="px-6 py-4 text-sm text-gray-900">
-                {sign.notes || '-'}
+                <div className="max-w-xs truncate">
+                  {vitalSign.notes || '-'}
+                </div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <Link
+                  href={`/vital-signs/${vitalSign.id}`}
+                  className="text-indigo-600 hover:text-indigo-900 mr-4"
+                >
+                  詳細
+                </Link>
                 <button
-                  onClick={() => handleDelete(sign.id)}
+                  onClick={() => handleDelete(vitalSign.id)}
                   disabled={loading}
-                  className="text-red-600 hover:text-red-900 disabled:opacity-50"
+                  className="text-red-600 hover:text-red-900"
                 >
                   削除
                 </button>
