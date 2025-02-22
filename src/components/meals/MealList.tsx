@@ -2,6 +2,7 @@
 
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
+import Image from 'next/image';
 import type { Meal } from '@/types';
 
 interface MealListProps {
@@ -48,11 +49,13 @@ export default function MealList({ meals, onDelete }: MealListProps) {
             </div>
 
             {meal.image_url && (
-              <div className="mt-4">
-                <img
+              <div className="mt-4 relative w-full max-w-md aspect-video">
+                <Image
                   src={meal.image_url}
                   alt={meal.name}
-                  className="w-full max-w-md rounded-lg"
+                  fill
+                  className="rounded-lg object-cover"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
               </div>
             )}

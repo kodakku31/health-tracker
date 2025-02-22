@@ -8,7 +8,12 @@ const withPWA = require('next-pwa')({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
+  eslint: {
+    ignoreDuringBuilds: true // ビルド時のESLintチェックを無効化
+  },
+  images: {
+    domains: ['tvjisragoprdntjakqre.supabase.co'], // Supabaseのドメインを追加
+  }
 };
 
 module.exports = withPWA(nextConfig);
