@@ -7,8 +7,8 @@ import { AuthProvider } from '@/contexts/AuthContext';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'HealthTracker - 健康管理アプリ',
-  description: '日々の健康データを記録・管理し、より健康的な生活をサポートします。',
+  title: 'Health Tracker',
+  description: '健康管理アプリケーション',
 };
 
 export default function RootLayout({

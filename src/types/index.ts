@@ -152,3 +152,21 @@ export interface AppSettings {
     anonymousAnalytics: boolean;
   };
 }
+
+export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
+
+export interface Meal {
+  id: string;
+  user_id: string;
+  meal_type: MealType;
+  eaten_at: string;
+  name: string;
+  calories?: number;
+  protein?: number;
+  fat?: number;
+  carbohydrates?: number;
+  notes?: string;
+  image_url?: string;
+  created_at: string;
+  updated_at: string;
+}
