@@ -3,7 +3,7 @@
 import { useState, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import type { SignUpFormData, AuthError } from '@/types/auth';
+import type { SignUpFormData } from '@/types/auth';
 
 export default function SignUpForm() {
   const [formData, setFormData] = useState<SignUpFormData>({

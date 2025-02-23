@@ -48,8 +48,8 @@ export default function VitalSignsPage() {
 
         setVitalSigns(vitalSignsResult.data || []);
         setGoal(goalResult.data);
-      } catch (err) {
-        console.error('Error fetching data:', err);
+      } catch (error: unknown) {
+        console.error('Error fetching data:', error);
         setError('データの取得中にエラーが発生しました。');
       } finally {
         setLoading(false);
