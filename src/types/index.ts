@@ -1,18 +1,21 @@
-export interface UserProfile {
+// Base Types
+export interface BaseEntity {
   id: string;
-  user_id: string;
-  email: string;
-  display_name: string;
-  birth_date: string;
-  gender: 'male' | 'female' | 'other';
-  height: number;
-  activity_level: 'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active' | 'extra_active';
   created_at: string;
   updated_at: string;
 }
 
-export interface VitalSign {
-  id: string;
+export interface UserProfile extends BaseEntity {
+  user_id: string;
+  display_name: string | null;
+  avatar_url: string | null;
+  height: number | null;
+  birth_date: string | null;
+  gender: 'male' | 'female' | 'other' | null;
+}
+
+// Health Related Types
+export interface VitalSign extends BaseEntity {
   user_id: string;
   measured_at: string;
   weight: number | null;
@@ -21,54 +24,81 @@ export interface VitalSign {
   heart_rate: number | null;
   body_temperature: number | null;
   notes: string | null;
-  created_at: string;
-  updated_at: string;
 }
 
-export interface VitalSignGoal {
-  id: string;
+export interface VitalSignGoal extends BaseEntity {
   user_id: string;
   target_weight: number | null;
   target_systolic_bp: number | null;
   target_diastolic_bp: number | null;
   target_heart_rate: number | null;
   notes: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface Exercise {
-  id: string;
-  user_id: string;
-  start_time: string;
-  end_time: string;
-  exercise_type: ExerciseType;
-  calories_burned: number;
-  notes: string | null;
-  created_at: string;
-  updated_at: string;
 }
 
 export type ExerciseType = 'walking' | 'running' | 'cycling' | 'swimming' | 'weight_training' | 'yoga' | 'other';
 
+export interface Exercise extends BaseEntity {
+  user_id: string;
+  exercise_type: ExerciseType;
+  start_time: string;
+  end_time: string;
+  duration_minutes: number;
+  distance_km: number | null;
+  calories_burned: number | null;
+  notes: string | null;
+}
+
 export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
 
-export interface Meal {
-  id: string;
+export interface Meal extends BaseEntity {
   user_id: string;
   meal_type: MealType;
   eaten_at: string;
   name: string;
   calories: number | null;
-  protein: number | null;
-  fat: number | null;
-  carbohydrates: number | null;
+  protein_grams: number | null;
+  carbs_grams: number | null;
+  fat_grams: number | null;
   notes: string | null;
-  image_url: string | null;
-  created_at: string;
-  updated_at: string;
 }
 
+// Form Types
+export interface FormState {
+  loading: boolean;
+  error: string | null;
+}
+
+// Common Types
+export interface DateRange {
+  startDate: Date;
+  endDate: Date;
+}
+
+export interface PaginationParams {
+  page: number;
+  limit: number;
+}
+
+// Chart Types
+export interface ChartData {
+  labels: string[];
+  datasets: {
+    label: string;
+    data: number[];
+    borderColor?: string;
+    backgroundColor?: string;
+  }[];
+}
+
+// Stats Types
+export interface VitalSignStats {
+  average: number;
+  min: number;
+  max: number;
+  trend: 'up' | 'down' | 'stable';
+}
+
+// Additional Types
 export interface VitalSigns {
   id: string;
   userId: string;
