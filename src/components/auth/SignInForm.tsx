@@ -1,34 +1,47 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { handleAuthError } from '@/utils/error';
+import type { FormState } from '@/types';
+
+interface SignInFormData {
+  email: string;
+  password: string;
+}
 
 export default function SignInForm() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+  const [formState, setFormState] = useState<FormState>({
+    loading: false,
+    error: null,
+  });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    const formData = new FormData(e.currentTarget);
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
+    setFormState({ loading: true, error: null });
 
     try {
-      const { error: err } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const formData = new FormData(e.currentTarget);
+      const data: SignInFormData = {
+        email: formData.get('email') as string,
+        password: formData.get('password') as string,
+      };
 
-      if (err) throw err;
-      window.location.replace('/dashboard');
-    } catch (err) {
-      console.error('Error signing in:', err);
-      setError('ログインに失敗しました。メールアドレスとパスワードを確認してください。');
+      const { error } = await supabase.auth.signInWithPassword(data);
+
+      if (error) throw error;
+
+      router.push('/dashboard');
+    } catch (error) {
+      console.error('Error signing in:', error);
+      setFormState(prev => ({
+        ...prev,
+        error: handleAuthError(error),
+      }));
     } finally {
-      setLoading(false);
+      setFormState(prev => ({ ...prev, loading: false }));
     }
   };
 
@@ -66,17 +79,17 @@ export default function SignInForm() {
         />
       </div>
 
-      {error && (
-        <div className="text-red-600 text-sm">{error}</div>
+      {formState.error && (
+        <div className="text-red-600 text-sm">{formState.error}</div>
       )}
 
       <div>
         <button
           type="submit"
-          disabled={loading}
+          disabled={formState.loading}
           className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
         >
-          {loading ? 'ログイン中...' : 'ログイン'}
+          {formState.loading ? 'ログイン中...' : 'ログイン'}
         </button>
       </div>
     </form>
