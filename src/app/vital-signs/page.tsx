@@ -26,7 +26,7 @@ export default function VitalSignsPage() {
       if (err) throw err;
       setVitalSigns(data || []);
     } catch (err) {
-      handleError(err instanceof Error ? err : new Error('バイタルサインの取得中にエラーが発生しました。'));
+      handleError(err);
     }
   };
 
@@ -42,20 +42,20 @@ export default function VitalSignsPage() {
       if (err) throw err;
       setGoal(data || undefined);
     } catch (err) {
-      handleError(err instanceof Error ? err : new Error('目標値の取得中にエラーが発生しました。'));
+      handleError(err);
     }
   };
 
-  const handleError = (error: Error) => {
+  const handleError = (error: unknown) => {
     console.error('Error:', error);
-    setError(error.message);
+    setError(error instanceof Error ? error.message : '予期せぬエラーが発生しました。');
     setLoading(false);
   };
 
   useEffect(() => {
     Promise.all([fetchVitalSigns(), fetchGoal()])
       .then(() => setLoading(false))
-      .catch((err) => handleError(err instanceof Error ? err : new Error('データの取得中にエラーが発生しました。')));
+      .catch(handleError);
   }, []);
 
   if (loading) {

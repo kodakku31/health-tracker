@@ -50,7 +50,7 @@ export default function SignUpForm() {
 
     try {
       // Create auth user with metadata
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      const { data, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
@@ -72,7 +72,7 @@ export default function SignUpForm() {
         throw authError;
       }
 
-      if (!authData.user) {
+      if (!data.user) {
         throw new Error('ユーザー登録に失敗しました。');
       }
 

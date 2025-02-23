@@ -1,15 +1,12 @@
-'use client';
-
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import type { Exercise } from '@/types';
 
 interface ExerciseListProps {
   exercises: Exercise[];
-  onDelete?: (id: string) => void;
 }
 
-export default function ExerciseList({ exercises, onDelete }: ExerciseListProps) {
+export default function ExerciseList({ exercises }: ExerciseListProps) {
   return (
     <div className="space-y-6">
       {exercises.map((exercise) => (
@@ -27,14 +24,6 @@ export default function ExerciseList({ exercises, onDelete }: ExerciseListProps)
                 </div>
                 <h3 className="mt-2 text-lg font-medium">{exercise.exerciseType}</h3>
               </div>
-              {onDelete && (
-                <button
-                  onClick={() => onDelete(exercise.id)}
-                  className="text-red-600 hover:text-red-800"
-                >
-                  削除
-                </button>
-              )}
             </div>
 
             <div className="mt-4 grid grid-cols-2 gap-4">
