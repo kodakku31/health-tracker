@@ -2,18 +2,18 @@ const withPWA = require('next-pwa')({
   dest: 'public',
   register: true,
   skipWaiting: true,
-  disable: process.env.NODE_ENV === 'development'
+  disable: process.env.NODE_ENV === 'development',
 });
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  eslint: {
-    ignoreDuringBuilds: true // ビルド時のESLintチェックを無効化
-  },
   images: {
-    domains: ['tvjisragoprdntjakqre.supabase.co'], // Supabaseのドメインを追加
-  }
+    domains: ['tvjisragoprdntjakqre.supabase.co'],
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 };
 
 module.exports = withPWA(nextConfig);

@@ -1,11 +1,70 @@
 export interface UserProfile {
   id: string;
+  user_id: string;
   email: string;
   display_name: string;
   birth_date: string;
   gender: 'male' | 'female' | 'other';
   height: number;
   activity_level: 'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active' | 'extra_active';
+  created_at: string;
+  updated_at: string;
+}
+
+export interface VitalSign {
+  id: string;
+  user_id: string;
+  measured_at: string;
+  weight: number | null;
+  systolic_bp: number | null;
+  diastolic_bp: number | null;
+  heart_rate: number | null;
+  body_temperature: number | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface VitalSignGoal {
+  id: string;
+  user_id: string;
+  target_weight: number | null;
+  target_systolic_bp: number | null;
+  target_diastolic_bp: number | null;
+  target_heart_rate: number | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Exercise {
+  id: string;
+  user_id: string;
+  start_time: string;
+  end_time: string;
+  exercise_type: ExerciseType;
+  calories_burned: number;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type ExerciseType = 'walking' | 'running' | 'cycling' | 'swimming' | 'weight_training' | 'yoga' | 'other';
+
+export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
+
+export interface Meal {
+  id: string;
+  user_id: string;
+  meal_type: MealType;
+  eaten_at: string;
+  name: string;
+  calories: number | null;
+  protein: number | null;
+  fat: number | null;
+  carbohydrates: number | null;
+  notes: string | null;
+  image_url: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -23,46 +82,6 @@ export interface VitalSigns {
   heartRate?: number;
   notes?: string;
 }
-
-export interface VitalSign {
-  id: string;
-  user_id: string;
-  measured_at: string;
-  weight?: number;
-  systolic_bp?: number;
-  diastolic_bp?: number;
-  heart_rate?: number;
-  body_temperature?: number;
-  notes?: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface VitalSignGoal {
-  id: string;
-  user_id: string;
-  target_weight?: number;
-  target_systolic_bp?: number;
-  target_diastolic_bp?: number;
-  target_heart_rate?: number;
-  notes?: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface Exercise {
-  id: string;
-  userId: string;
-  startTime: string;
-  endTime: string;
-  exerciseType: string;
-  caloriesBurned: number;
-  notes?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export type ExerciseType = 'walking' | 'running' | 'cycling' | 'swimming' | 'weight_training' | 'yoga' | 'other';
 
 export interface Sleep {
   id: string;
@@ -150,22 +169,4 @@ export interface AppSettings {
     dataSharing: boolean;
     anonymousAnalytics: boolean;
   };
-}
-
-export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
-
-export interface Meal {
-  id: string;
-  user_id: string;
-  meal_type: MealType;
-  eaten_at: string;
-  name: string;
-  calories?: number;
-  protein?: number;
-  fat?: number;
-  carbohydrates?: number;
-  notes?: string;
-  image_url?: string;
-  created_at: string;
-  updated_at: string;
 }

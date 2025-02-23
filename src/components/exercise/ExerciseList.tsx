@@ -1,5 +1,7 @@
 'use client';
 
+import { format } from 'date-fns';
+import { ja } from 'date-fns/locale';
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { Exercise } from '@/types';
@@ -9,46 +11,18 @@ interface ExerciseListProps {
   onDelete?: (id: string) => void;
 }
 
-export default function ExerciseList({
-  exercises,
-  onDelete,
-}: ExerciseListProps) {
-  const [editingId, setEditingId] = useState<string | null>(null);
+const exerciseTypeLabels: Record<string, string> = {
+  walking: 'ウォーキング',
+  running: 'ランニング',
+  cycling: 'サイクリング',
+  swimming: '水泳',
+  weight_training: 'ウェイトトレーニング',
+  yoga: 'ヨガ',
+  other: 'その他',
+};
+
+export default function ExerciseList({ exercises, onDelete }: ExerciseListProps) {
   const [loading, setLoading] = useState(false);
-
-  const formatDateTime = (dateStr: string) => {
-    return new Date(dateStr).toLocaleString('ja-JP', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
-  const getExerciseTypeLabel = (type: string) => {
-    const types: { [key: string]: string } = {
-      walking: 'ウォーキング',
-      running: 'ランニング',
-      cycling: 'サイクリング',
-      swimming: '水泳',
-      weight_training: '筋力トレーニング',
-      yoga: 'ヨガ',
-      stretching: 'ストレッチ',
-      hiit: 'HIIT',
-      other: 'その他',
-    };
-    return types[type] || type;
-  };
-
-  const getIntensityLabel = (intensity: string) => {
-    const intensities: { [key: string]: string } = {
-      light: '軽い',
-      moderate: '中程度',
-      vigorous: '激しい',
-    };
-    return intensities[intensity] || intensity;
-  };
 
   const handleDelete = async (id: string) => {
     if (!confirm('この記録を削除してもよろしいですか？')) return;
@@ -70,72 +44,66 @@ export default function ExerciseList({
     }
   };
 
-  if (exercises.length === 0) {
-    return (
-      <div className="text-center py-8 text-gray-500">
-        運動記録がありません。新しい記録を追加してください。
-      </div>
-    );
-  }
-
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              日時
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              運動の種類
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              消費カロリー
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              運動強度
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              メモ
-            </th>
-            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-              操作
-            </th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {exercises.map((exercise) => (
-            <tr key={exercise.id}>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {formatDateTime(exercise.startTime)} ～
-                <br />
-                {formatDateTime(exercise.endTime)}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {getExerciseTypeLabel(exercise.exerciseType)}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {exercise.caloriesBurned} kcal
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {getIntensityLabel(exercise.intensity)}
-              </td>
-              <td className="px-6 py-4 text-sm text-gray-900">
-                {exercise.notes}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+    <div className="space-y-6">
+      {exercises.map((exercise) => (
+        <div
+          key={exercise.id}
+          className="bg-white rounded-lg shadow overflow-hidden hover:shadow-md transition-shadow"
+        >
+          <div className="p-6">
+            <div className="flex justify-between items-start">
+              <div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-500">
+                    {format(new Date(exercise.start_time), 'PPP p', { locale: ja })}
+                  </span>
+                </div>
+                <h3 className="mt-2 text-lg font-medium">
+                  {exerciseTypeLabels[exercise.exercise_type]}
+                </h3>
+              </div>
+              {onDelete && (
                 <button
                   onClick={() => handleDelete(exercise.id)}
                   disabled={loading}
-                  className="text-red-600 hover:text-red-900 disabled:opacity-50"
+                  className="text-red-600 hover:text-red-800 disabled:opacity-50"
                 >
                   削除
                 </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+              )}
+            </div>
+
+            <div className="mt-4 grid grid-cols-2 gap-4">
+              <div>
+                <dt className="text-sm font-medium text-gray-500">消費カロリー</dt>
+                <dd className="mt-1">{exercise.calories_burned} kcal</dd>
+              </div>
+              <div>
+                <dt className="text-sm font-medium text-gray-500">時間</dt>
+                <dd className="mt-1">
+                  {format(new Date(exercise.start_time), 'p')} - {format(new Date(exercise.end_time), 'p')}
+                </dd>
+              </div>
+            </div>
+
+            {exercise.notes && (
+              <div className="mt-4">
+                <dt className="text-sm font-medium text-gray-500">メモ</dt>
+                <dd className="mt-1 text-sm text-gray-900 whitespace-pre-wrap">
+                  {exercise.notes}
+                </dd>
+              </div>
+            )}
+          </div>
+        </div>
+      ))}
+
+      {exercises.length === 0 && (
+        <div className="text-center py-12">
+          <p className="text-gray-500">運動記録がありません</p>
+        </div>
+      )}
     </div>
   );
 }
