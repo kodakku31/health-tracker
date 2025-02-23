@@ -7,55 +7,44 @@ interface ExerciseListProps {
 }
 
 export default function ExerciseList({ exercises }: ExerciseListProps) {
+  if (!exercises.length) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-500">運動記録がありません</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6">
-      {exercises.map((exercise) => (
-        <div
-          key={exercise.id}
-          className="bg-white rounded-lg shadow overflow-hidden hover:shadow-md transition-shadow"
-        >
-          <div className="p-6">
-            <div className="flex justify-between items-start">
-              <div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-gray-500">
-                    {format(new Date(exercise.startTime), 'PPP p', { locale: ja })}
-                  </span>
+    <div className="overflow-hidden bg-white shadow sm:rounded-md">
+      <ul role="list" className="divide-y divide-gray-200">
+        {exercises.map((exercise) => (
+          <li key={exercise.id}>
+            <div className="px-4 py-4 sm:px-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-indigo-600">
+                    {exercise.exerciseType}
+                  </p>
+                  <p className="mt-1 text-sm text-gray-500">
+                    {format(new Date(exercise.startTime), 'p')} - {format(new Date(exercise.endTime), 'p')} / {exercise.caloriesBurned} kcal
+                  </p>
+                  {exercise.notes && (
+                    <p className="mt-1 text-sm text-gray-500">
+                      メモ: {exercise.notes}
+                    </p>
+                  )}
                 </div>
-                <h3 className="mt-2 text-lg font-medium">{exercise.exerciseType}</h3>
+                <div className="ml-2 flex flex-shrink-0">
+                  <p className="inline-flex rounded-full bg-green-100 px-2 text-xs font-semibold leading-5 text-green-800">
+                    {format(new Date(exercise.startTime), 'PPP', { locale: ja })}
+                  </p>
+                </div>
               </div>
             </div>
-
-            <div className="mt-4 grid grid-cols-2 gap-4">
-              <div>
-                <dt className="text-sm font-medium text-gray-500">消費カロリー</dt>
-                <dd className="mt-1">{exercise.caloriesBurned} kcal</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-gray-500">時間</dt>
-                <dd className="mt-1">
-                  {format(new Date(exercise.startTime), 'p')} - {format(new Date(exercise.endTime), 'p')}
-                </dd>
-              </div>
-            </div>
-
-            {exercise.notes && (
-              <div className="mt-4">
-                <dt className="text-sm font-medium text-gray-500">メモ</dt>
-                <dd className="mt-1 text-sm text-gray-900 whitespace-pre-wrap">
-                  {exercise.notes}
-                </dd>
-              </div>
-            )}
-          </div>
-        </div>
-      ))}
-
-      {exercises.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-gray-500">運動記録がありません</p>
-        </div>
-      )}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
