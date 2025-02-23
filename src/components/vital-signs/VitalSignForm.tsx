@@ -14,20 +14,20 @@ export default function VitalSignForm({ onSubmit }: VitalSignFormProps) {
   const [heartRate, setHeartRate] = useState('');
   const [bodyTemperature, setBodyTemperature] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | undefined>(undefined);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
+    setError(undefined);
     setLoading(true);
 
     try {
       await onSubmit({
-        weight: weight ? parseFloat(weight) : null,
-        systolic_blood_pressure: systolicBP ? parseInt(systolicBP) : null,
-        diastolic_blood_pressure: diastolicBP ? parseInt(diastolicBP) : null,
-        heart_rate: heartRate ? parseInt(heartRate) : null,
-        body_temperature: bodyTemperature ? parseFloat(bodyTemperature) : null,
+        weight: weight ? parseFloat(weight) : undefined,
+        systolic_blood_pressure: systolicBP ? parseInt(systolicBP) : undefined,
+        diastolic_blood_pressure: diastolicBP ? parseInt(diastolicBP) : undefined,
+        heart_rate: heartRate ? parseInt(heartRate) : undefined,
+        body_temperature: bodyTemperature ? parseFloat(bodyTemperature) : undefined,
         measured_at: new Date().toISOString(),
       });
 
