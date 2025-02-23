@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import VitalSignForm from '@/components/vital-signs/VitalSignForm';
@@ -9,7 +11,7 @@ import type { VitalSign, VitalSignGoal } from '@/types';
 
 export default function VitalSignsPage() {
   const [vitalSigns, setVitalSigns] = useState<VitalSign[]>([]);
-  const [goal, setGoal] = useState<VitalSignGoal | undefined>();
+  const [goal, setGoal] = useState<VitalSignGoal | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedChart, setSelectedChart] = useState<'weight' | 'blood_pressure' | 'heart_rate' | 'body_temperature'>('weight');
@@ -24,7 +26,8 @@ export default function VitalSignsPage() {
       if (err) throw err;
       setVitalSigns(data || []);
     } catch (err) {
-      handleError(err);
+      console.error('Error fetching vital signs:', err);
+      setError('バイタルサインの取得中にエラーが発生しました。');
     }
   };
 
@@ -38,22 +41,16 @@ export default function VitalSignsPage() {
         .maybeSingle();
 
       if (err) throw err;
-      setGoal(data || undefined);
+      setGoal(data || null);
     } catch (err) {
-      handleError(err);
+      console.error('Error fetching goal:', err);
+      setError('目標値の取得中にエラーが発生しました。');
     }
-  };
-
-  const handleError = (error: unknown) => {
-    console.error('Error:', error);
-    setError(error instanceof Error ? error.message : '予期せぬエラーが発生しました。');
-    setLoading(false);
   };
 
   useEffect(() => {
     Promise.all([fetchVitalSigns(), fetchGoal()])
-      .then(() => setLoading(false))
-      .catch(handleError);
+      .finally(() => setLoading(false));
   }, []);
 
   if (loading) {
@@ -76,7 +73,7 @@ export default function VitalSignsPage() {
           <h3 className="text-lg font-semibold">トレンド</h3>
           <select
             value={selectedChart}
-            onChange={(e) => setSelectedChart(e.target.value as typeof selectedChart)}
+            onChange={(e) => setSelectedChart(e.target.value as any)}
             className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           >
             <option value="weight">体重</option>

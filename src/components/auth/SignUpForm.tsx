@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import type { SignUpFormData } from '@/types/auth';
+import type { SignUpFormData, AuthError } from '@/types/auth';
 
 export default function SignUpForm() {
   const [formData, setFormData] = useState<SignUpFormData>({
@@ -21,7 +21,7 @@ export default function SignUpForm() {
   const router = useRouter();
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
     if (name === 'height') {
@@ -50,7 +50,7 @@ export default function SignUpForm() {
 
     try {
       // Create auth user with metadata
-      const { data, error: authError } = await supabase.auth.signUp({
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
@@ -72,7 +72,7 @@ export default function SignUpForm() {
         throw authError;
       }
 
-      if (!data.user) {
+      if (!authData.user) {
         throw new Error('ユーザー登録に失敗しました。');
       }
 

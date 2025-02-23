@@ -1,131 +1,158 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/contexts/AuthContext';
 import type { VitalSign } from '@/types';
 
 interface VitalSignFormProps {
-  onSubmit: (data: VitalSign) => Promise<void>;
+  onSuccess: () => void;
 }
 
-export default function VitalSignForm({ onSubmit }: VitalSignFormProps) {
-  const [weight, setWeight] = useState('');
-  const [systolicBP, setSystolicBP] = useState('');
-  const [diastolicBP, setDiastolicBP] = useState('');
-  const [heartRate, setHeartRate] = useState('');
-  const [bodyTemperature, setBodyTemperature] = useState('');
+export default function VitalSignForm({ onSuccess }: VitalSignFormProps) {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | undefined>(undefined);
+  const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
+  const formRef = useRef<HTMLFormElement>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError(undefined);
+    if (!user) {
+      setError('ログインが必要です。');
+      return;
+    }
+
     setLoading(true);
+    setError(null);
+
+    const formData = new FormData(e.currentTarget);
+    const data = {
+      user_id: user.id,
+      measured_at: new Date().toISOString(),
+      weight: formData.get('weight') ? Number(formData.get('weight')) : null,
+      systolic_bp: formData.get('systolic_bp') ? Number(formData.get('systolic_bp')) : null,
+      diastolic_bp: formData.get('diastolic_bp') ? Number(formData.get('diastolic_bp')) : null,
+      heart_rate: formData.get('heart_rate') ? Number(formData.get('heart_rate')) : null,
+      body_temperature: formData.get('body_temperature') ? Number(formData.get('body_temperature')) : null,
+      notes: formData.get('notes') as string || null,
+    };
 
     try {
-      await onSubmit({
-        weight: weight ? parseFloat(weight) : undefined,
-        systolic_blood_pressure: systolicBP ? parseInt(systolicBP) : undefined,
-        diastolic_blood_pressure: diastolicBP ? parseInt(diastolicBP) : undefined,
-        heart_rate: heartRate ? parseInt(heartRate) : undefined,
-        body_temperature: bodyTemperature ? parseFloat(bodyTemperature) : undefined,
-        measured_at: new Date().toISOString(),
-      });
+      const { error: err } = await supabase
+        .from('vital_signs')
+        .insert([data]);
 
-      // フォームをリセット
-      setWeight('');
-      setSystolicBP('');
-      setDiastolicBP('');
-      setHeartRate('');
-      setBodyTemperature('');
+      if (err) throw err;
+      
+      formRef.current?.reset();
+      onSuccess();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'バイタルサインの登録に失敗しました。');
+      console.error('Error creating vital sign:', err);
+      setError('バイタルサインの記録中にエラーが発生しました。');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg shadow">
-      {error && (
-        <div className="bg-red-50 border-l-4 border-red-400 p-4">
-          <p className="text-red-700">{error}</p>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+    <form ref={formRef} onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg shadow">
+      <h3 className="text-lg font-semibold mb-4">バイタルサインを記録</h3>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label htmlFor="weight" className="block text-sm font-medium text-gray-700">
             体重 (kg)
           </label>
           <input
             type="number"
+            name="weight"
             id="weight"
             step="0.1"
-            value={weight}
-            onChange={(e) => setWeight(e.target.value)}
+            min="0"
+            max="300"
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           />
         </div>
 
         <div>
-          <label htmlFor="systolicBP" className="block text-sm font-medium text-gray-700">
-            収縮期血圧 (mmHg)
-          </label>
-          <input
-            type="number"
-            id="systolicBP"
-            value={systolicBP}
-            onChange={(e) => setSystolicBP(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="diastolicBP" className="block text-sm font-medium text-gray-700">
-            拡張期血圧 (mmHg)
-          </label>
-          <input
-            type="number"
-            id="diastolicBP"
-            value={diastolicBP}
-            onChange={(e) => setDiastolicBP(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="heartRate" className="block text-sm font-medium text-gray-700">
-            心拍数 (bpm)
-          </label>
-          <input
-            type="number"
-            id="heartRate"
-            value={heartRate}
-            onChange={(e) => setHeartRate(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="bodyTemperature" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="body_temperature" className="block text-sm font-medium text-gray-700">
             体温 (℃)
           </label>
           <input
             type="number"
-            id="bodyTemperature"
+            name="body_temperature"
+            id="body_temperature"
             step="0.1"
-            value={bodyTemperature}
-            onChange={(e) => setBodyTemperature(e.target.value)}
+            min="30"
+            max="45"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="systolic_bp" className="block text-sm font-medium text-gray-700">
+            収縮期血圧 (mmHg)
+          </label>
+          <input
+            type="number"
+            name="systolic_bp"
+            id="systolic_bp"
+            min="0"
+            max="300"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="diastolic_bp" className="block text-sm font-medium text-gray-700">
+            拡張期血圧 (mmHg)
+          </label>
+          <input
+            type="number"
+            name="diastolic_bp"
+            id="diastolic_bp"
+            min="0"
+            max="300"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="heart_rate" className="block text-sm font-medium text-gray-700">
+            心拍数 (bpm)
+          </label>
+          <input
+            type="number"
+            name="heart_rate"
+            id="heart_rate"
+            min="0"
+            max="300"
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           />
         </div>
       </div>
 
       <div>
+        <label htmlFor="notes" className="block text-sm font-medium text-gray-700">
+          メモ
+        </label>
+        <textarea
+          name="notes"
+          id="notes"
+          rows={3}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+        />
+      </div>
+
+      {error && (
+        <div className="text-red-600 text-sm">{error}</div>
+      )}
+
+      <div className="flex justify-end">
         <button
           type="submit"
           disabled={loading}
-          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+          className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
         >
           {loading ? '記録中...' : '記録する'}
         </button>

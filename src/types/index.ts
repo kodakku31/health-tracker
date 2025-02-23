@@ -25,8 +25,8 @@ export interface VitalSigns {
 }
 
 export interface VitalSign {
-  id?: string;
-  user_id?: string;
+  id: string;
+  user_id: string;
   measured_at: string;
   weight?: number;
   systolic_bp?: number;
@@ -34,20 +34,20 @@ export interface VitalSign {
   heart_rate?: number;
   body_temperature?: number;
   notes?: string;
-  created_at?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface VitalSignGoal {
-  id?: string;
-  user_id?: string;
+  id: string;
+  user_id: string;
   target_weight?: number;
   target_systolic_bp?: number;
   target_diastolic_bp?: number;
   target_heart_rate?: number;
-  target_body_temperature?: number;
   notes?: string;
-  created_at?: string;
-  updated_at?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Exercise {
