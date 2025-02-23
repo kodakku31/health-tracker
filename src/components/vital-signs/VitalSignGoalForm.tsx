@@ -1,69 +1,103 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/contexts/AuthContext';
 import type { VitalSignGoal } from '@/types';
 
 interface VitalSignGoalFormProps {
-  goal?: VitalSignGoal;
-  onSuccess: () => void;
+  initialGoal: VitalSignGoal | null;
+  onSubmit: (goal: VitalSignGoal) => void;
 }
 
-export default function VitalSignGoalForm({ goal, onSuccess }: VitalSignGoalFormProps) {
+export default function VitalSignGoalForm({
+  initialGoal,
+  onSubmit,
+}: VitalSignGoalFormProps) {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth();
-  const formRef = useRef<HTMLFormElement>(null);
+  const [formData, setFormData] = useState({
+    target_weight: initialGoal?.target_weight?.toString() || '',
+    target_systolic_bp: initialGoal?.target_systolic_bp?.toString() || '',
+    target_diastolic_bp: initialGoal?.target_diastolic_bp?.toString() || '',
+    target_heart_rate: initialGoal?.target_heart_rate?.toString() || '',
+    notes: initialGoal?.notes || '',
+  });
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) {
-      setError('ログインが必要です。');
-      return;
-    }
-
     setLoading(true);
-    setError(null);
-
-    const formData = new FormData(e.currentTarget);
-    const data = {
-      user_id: user.id,
-      target_weight: formData.get('target_weight') ? Number(formData.get('target_weight')) : null,
-      target_systolic_bp: formData.get('target_systolic_bp') ? Number(formData.get('target_systolic_bp')) : null,
-      target_diastolic_bp: formData.get('target_diastolic_bp') ? Number(formData.get('target_diastolic_bp')) : null,
-      target_heart_rate: formData.get('target_heart_rate') ? Number(formData.get('target_heart_rate')) : null,
-      notes: formData.get('notes') as string || null,
-    };
 
     try {
-      if (goal) {
-        const { error: err } = await supabase
-          .from('vital_sign_goals')
-          .update(data)
-          .eq('id', goal.id);
-        if (err) throw err;
-      } else {
-        const { error: err } = await supabase
-          .from('vital_sign_goals')
-          .insert([data]);
-        if (err) throw err;
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError) throw userError;
+      if (!user) {
+        router.push('/auth/signin');
+        return;
       }
 
-      if (!goal) {
-        formRef.current?.reset();
+      const data = {
+        user_id: user.id,
+        target_weight: formData.target_weight ? parseFloat(formData.target_weight) : null,
+        target_systolic_bp: formData.target_systolic_bp
+          ? parseInt(formData.target_systolic_bp)
+          : null,
+        target_diastolic_bp: formData.target_diastolic_bp
+          ? parseInt(formData.target_diastolic_bp)
+          : null,
+        target_heart_rate: formData.target_heart_rate
+          ? parseInt(formData.target_heart_rate)
+          : null,
+        notes: formData.notes || null,
+      };
+
+      if (initialGoal) {
+        const { data: updatedGoal, error } = await supabase
+          .from('vital_sign_goals')
+          .update(data)
+          .eq('id', initialGoal.id)
+          .select()
+          .single();
+
+        if (error) throw error;
+        if (!updatedGoal) throw new Error('Goal data not found after update');
+
+        onSubmit(updatedGoal);
+      } else {
+        const { data: newGoal, error } = await supabase
+          .from('vital_sign_goals')
+          .insert([data])
+          .select()
+          .single();
+
+        if (error) throw error;
+        if (!newGoal) throw new Error('Goal data not found after insert');
+
+        onSubmit(newGoal);
       }
-      onSuccess();
-    } catch (err) {
-      console.error('Error saving vital sign goal:', err);
-      setError('目標値の保存中にエラーが発生しました。');
+
+      router.refresh();
+    } catch (error) {
+      console.error('Error saving goal:', error);
+      alert('目標値の保存中にエラーが発生しました。');
     } finally {
       setLoading(false);
     }
   };
 
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
   return (
-    <form ref={formRef} onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg shadow">
+    <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg shadow">
       <h3 className="text-lg font-semibold mb-4">目標値を設定</h3>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -73,12 +107,13 @@ export default function VitalSignGoalForm({ goal, onSuccess }: VitalSignGoalForm
           </label>
           <input
             type="number"
-            name="target_weight"
             id="target_weight"
-            defaultValue={goal?.target_weight}
+            name="target_weight"
             step="0.1"
             min="0"
             max="300"
+            value={formData.target_weight}
+            onChange={handleChange}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           />
         </div>
@@ -89,11 +124,12 @@ export default function VitalSignGoalForm({ goal, onSuccess }: VitalSignGoalForm
           </label>
           <input
             type="number"
-            name="target_systolic_bp"
             id="target_systolic_bp"
-            defaultValue={goal?.target_systolic_bp}
+            name="target_systolic_bp"
             min="0"
             max="300"
+            value={formData.target_systolic_bp}
+            onChange={handleChange}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           />
         </div>
@@ -104,11 +140,12 @@ export default function VitalSignGoalForm({ goal, onSuccess }: VitalSignGoalForm
           </label>
           <input
             type="number"
-            name="target_diastolic_bp"
             id="target_diastolic_bp"
-            defaultValue={goal?.target_diastolic_bp}
+            name="target_diastolic_bp"
             min="0"
-            max="300"
+            max="200"
+            value={formData.target_diastolic_bp}
+            onChange={handleChange}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           />
         </div>
@@ -119,11 +156,12 @@ export default function VitalSignGoalForm({ goal, onSuccess }: VitalSignGoalForm
           </label>
           <input
             type="number"
-            name="target_heart_rate"
             id="target_heart_rate"
-            defaultValue={goal?.target_heart_rate}
+            name="target_heart_rate"
             min="0"
             max="300"
+            value={formData.target_heart_rate}
+            onChange={handleChange}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           />
         </div>
@@ -134,17 +172,14 @@ export default function VitalSignGoalForm({ goal, onSuccess }: VitalSignGoalForm
           メモ
         </label>
         <textarea
-          name="notes"
           id="notes"
-          defaultValue={goal?.notes}
+          name="notes"
           rows={3}
+          value={formData.notes}
+          onChange={handleChange}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
         />
       </div>
-
-      {error && (
-        <div className="text-red-600 text-sm">{error}</div>
-      )}
 
       <div className="flex justify-end">
         <button
@@ -152,7 +187,7 @@ export default function VitalSignGoalForm({ goal, onSuccess }: VitalSignGoalForm
           disabled={loading}
           className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
         >
-          {loading ? '保存中...' : '保存する'}
+          {loading ? '保存中...' : '保存'}
         </button>
       </div>
     </form>
