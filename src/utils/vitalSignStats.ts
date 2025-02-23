@@ -1,13 +1,12 @@
-import { VitalSign, VitalSignGoal } from '@/types';
-import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
+import type { VitalSign, VitalSignGoal } from '@/types';
 
 interface Stats {
   current: number | null;
-  average: number | null;
   min: number | null;
   max: number | null;
+  avg: number | null;
   trend: 'up' | 'down' | 'stable' | null;
-  achievementRate: number | null;
+  goal: number | null;
 }
 
 interface VitalSignStats {
@@ -20,99 +19,87 @@ interface VitalSignStats {
 
 export const calculateStats = (
   vitalSigns: VitalSign[],
-  goal: VitalSignGoal | undefined,
+  goal: VitalSignGoal | null,
   period: 'week' | 'month' = 'week'
 ): VitalSignStats => {
   const now = new Date();
-  const periodStart = period === 'week' ? startOfWeek(now, { weekStartsOn: 1 }) : startOfMonth(now);
-  const periodEnd = period === 'week' ? endOfWeek(now, { weekStartsOn: 1 }) : endOfMonth(now);
+  const periodStart = new Date(now);
+  if (period === 'week') {
+    periodStart.setDate(now.getDate() - 7);
+  } else {
+    periodStart.setMonth(now.getMonth() - 1);
+  }
 
-  const periodData = vitalSigns.filter(record =>
-    isWithinInterval(new Date(record.measured_at), {
-      start: periodStart,
-      end: periodEnd,
-    })
+  const periodData = vitalSigns.filter(
+    (record) => new Date(record.measured_at) >= periodStart
   );
 
   const calculateMetricStats = (
     getData: (record: VitalSign) => number | null,
-    getGoal: (goal: VitalSignGoal | undefined) => number | null
+    getGoal: (goal: VitalSignGoal | null) => number | null
   ): Stats => {
     const values = periodData
       .map(getData)
       .filter((value): value is number => value !== null);
 
+    const goalValue = goal ? getGoal(goal) : null;
+
     if (values.length === 0) {
       return {
         current: null,
-        average: null,
         min: null,
         max: null,
+        avg: null,
         trend: null,
-        achievementRate: null,
+        goal: goalValue ?? null
       };
     }
 
-    const current = values[values.length - 1];
-    const average = values.reduce((sum, val) => sum + val, 0) / values.length;
-    const min = Math.min(...values);
-    const max = Math.max(...values);
+    const sum = values.reduce((acc, val) => acc + val, 0);
+    const avg = sum / values.length;
 
-    // トレンドの計算（最新3件の平均と前の3件の平均を比較）
+    // Calculate trend using the last two values
     let trend: 'up' | 'down' | 'stable' | null = null;
-    if (values.length >= 6) {
-      const recentAvg = values.slice(-3).reduce((sum, val) => sum + val, 0) / 3;
-      const previousAvg = values.slice(-6, -3).reduce((sum, val) => sum + val, 0) / 3;
-      const difference = recentAvg - previousAvg;
-      const threshold = average * 0.05; // 5%の変動をしきい値とする
-      
-      if (Math.abs(difference) < threshold) {
+    if (values.length >= 2) {
+      const diff = values[0] - values[1];
+      const threshold = Math.abs(values[1]) * 0.05; // 5% threshold
+      if (Math.abs(diff) < threshold) {
         trend = 'stable';
       } else {
-        trend = difference > 0 ? 'up' : 'down';
-      }
-    }
-
-    // 目標達成率の計算
-    let achievementRate = null;
-    if (goal) {
-      const targetValue = getGoal(goal);
-      if (targetValue !== null) {
-        // 目標値に対する現在値の達成率を計算
-        achievementRate = (current / targetValue) * 100;
+        trend = diff > 0 ? 'up' : 'down';
       }
     }
 
     return {
-      current,
-      average,
-      min,
-      max,
+      current: values[0],
+      min: Math.min(...values),
+      max: Math.max(...values),
+      avg,
       trend,
-      achievementRate,
+      goal: goalValue ?? null
     };
   };
 
   return {
     weight: calculateMetricStats(
-      record => record.weight,
-      goal => goal?.target_weight ?? null
+      (record) => record.weight,
+      (goal) => goal?.target_weight ?? null
     ),
     systolicBp: calculateMetricStats(
-      record => record.systolic_bp,
-      goal => goal?.target_systolic_bp ?? null
+      (record) => record.systolic_bp,
+      (goal) => goal?.target_systolic_bp ?? null
     ),
     diastolicBp: calculateMetricStats(
-      record => record.diastolic_bp,
-      goal => goal?.target_diastolic_bp ?? null
+      (record) => record.diastolic_bp,
+      (goal) => goal?.target_diastolic_bp ?? null
     ),
     heartRate: calculateMetricStats(
-      record => record.heart_rate,
-      goal => goal?.target_heart_rate ?? null
+      (record) => record.heart_rate,
+      (goal) => goal?.target_heart_rate ?? null
     ),
     bodyTemperature: calculateMetricStats(
-      record => record.body_temperature,
-      () => null // 体温には目標値を設定しない
-    ),
+      (record) => record.body_temperature,
+      (goal) => goal?.target_body_temperature ?? null
+    )
   };
 };
