@@ -1,14 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { supabase } from '@/lib/supabase';
-import type { AuthFormData } from '@/types/auth';
+import { useAuth } from '@/lib/auth';
 
 export default function SignInForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { signIn } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.name === 'email') {
@@ -24,32 +24,9 @@ export default function SignInForm() {
     setError(null);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: email,
-        password: password,
-      });
-
-      if (error) {
-        let errorMessage = 'ログインに失敗しました。';
-        if (error.message.includes('Invalid login credentials')) {
-          errorMessage = 'メールアドレスまたはパスワードが正しくありません。';
-        } else if (error.message.includes('Email not confirmed')) {
-          errorMessage = 'メールアドレスが確認されていません。メールをご確認ください。';
-        }
-        throw new Error(errorMessage);
-      }
-
-      if (!data.user) {
-        throw new Error('ログインに失敗しました。');
-      }
-
-      console.log('Login successful:', data);
-      
-      // ログイン成功後、ダッシュボードにリダイレクト
-      window.location.replace('/dashboard');
+      await signIn(email, password);
     } catch (err) {
-      console.error('Login error:', err);
-      setError(err instanceof Error ? err.message : 'ログインに失敗しました。');
+      setError('ログインに失敗しました。メールアドレスとパスワードを確認してください。');
     } finally {
       setLoading(false);
     }

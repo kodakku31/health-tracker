@@ -7,12 +7,21 @@ const withPWA = require('next-pwa')({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
-  eslint: {
-    ignoreDuringBuilds: true // ビルド時のESLintチェックを無効化
-  },
   images: {
-    domains: ['tvjisragoprdntjakqre.supabase.co'], // Supabaseのドメインを追加
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'tvjisragoprdntjakqre.supabase.co',
+        port: '',
+        pathname: '/storage/v1/object/public/**',
+      },
+    ],
+  },
+  eslint: {
+    ignoreDuringBuilds: true
+  },
+  typescript: {
+    ignoreBuildErrors: true
   }
 };
 

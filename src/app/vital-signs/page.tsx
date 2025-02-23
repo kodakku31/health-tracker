@@ -26,8 +26,7 @@ export default function VitalSignsPage() {
       if (err) throw err;
       setVitalSigns(data || []);
     } catch (err) {
-      console.error('Error fetching vital signs:', err);
-      setError('バイタルサインの取得中にエラーが発生しました。');
+      handleError(err);
     }
   };
 
@@ -43,9 +42,14 @@ export default function VitalSignsPage() {
       if (err) throw err;
       setGoal(data || null);
     } catch (err) {
-      console.error('Error fetching goal:', err);
-      setError('目標値の取得中にエラーが発生しました。');
+      handleError(err);
     }
+  };
+
+  const handleError = (error: Error) => {
+    console.error('Error:', error);
+    setError('データの取得中にエラーが発生しました。');
+    setLoading(false);
   };
 
   useEffect(() => {

@@ -3,7 +3,6 @@
 import { useState, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
-import type { VitalSign } from '@/types';
 
 interface VitalSignFormProps {
   onSuccess: () => void;
