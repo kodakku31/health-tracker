@@ -11,7 +11,7 @@ import type { VitalSign, VitalSignGoal } from '@/types';
 
 export default function VitalSignsPage() {
   const [vitalSigns, setVitalSigns] = useState<VitalSign[]>([]);
-  const [goal, setGoal] = useState<VitalSignGoal | undefined>();
+  const [goal, setGoal] = useState<VitalSignGoal | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedChart, setSelectedChart] = useState<'weight' | 'blood_pressure' | 'heart_rate' | 'body_temperature'>('weight');
@@ -41,7 +41,7 @@ export default function VitalSignsPage() {
         .maybeSingle();
 
       if (err) throw err;
-      setGoal(data || undefined);
+      setGoal(data || null);
     } catch (err) {
       console.error('Error fetching goal:', err);
       setError('目標値の取得中にエラーが発生しました。');

@@ -6,14 +6,12 @@ import type { Exercise } from '@/types';
 
 interface ExerciseListProps {
   exercises: Exercise[];
-  onExerciseUpdated: (exercise: Exercise) => void;
-  onExerciseDeleted: (id: string) => void;
+  onDelete?: (id: string) => void;
 }
 
 export default function ExerciseList({
   exercises,
-  onExerciseUpdated,
-  onExerciseDeleted,
+  onDelete,
 }: ExerciseListProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -63,7 +61,7 @@ export default function ExerciseList({
         .eq('id', id);
 
       if (error) throw error;
-      onExerciseDeleted(id);
+      onDelete && onDelete(id);
     } catch (err) {
       console.error('Error deleting exercise:', err);
       alert('削除に失敗しました。');
@@ -109,15 +107,15 @@ export default function ExerciseList({
           {exercises.map((exercise) => (
             <tr key={exercise.id}>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {formatDateTime(exercise.start_time)} ～
+                {formatDateTime(exercise.startTime)} ～
                 <br />
-                {formatDateTime(exercise.end_time)}
+                {formatDateTime(exercise.endTime)}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {getExerciseTypeLabel(exercise.exercise_type)}
+                {getExerciseTypeLabel(exercise.exerciseType)}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {exercise.calories_burned} kcal
+                {exercise.caloriesBurned} kcal
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                 {getIntensityLabel(exercise.intensity)}

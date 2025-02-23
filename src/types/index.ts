@@ -53,14 +53,13 @@ export interface VitalSignGoal {
 export interface Exercise {
   id: string;
   userId: string;
-  startTime: Date;
-  endTime: Date;
-  type: ExerciseType;
-  intensity: 'low' | 'moderate' | 'high';
+  startTime: string;
+  endTime: string;
+  exerciseType: string;
   caloriesBurned: number;
-  distance?: number;
-  steps?: number;
   notes?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export type ExerciseType = 'walking' | 'running' | 'cycling' | 'swimming' | 'weight_training' | 'yoga' | 'other';
