@@ -11,7 +11,7 @@ import type { VitalSign, VitalSignGoal } from '@/types';
 
 export default function VitalSignsPage() {
   const [vitalSigns, setVitalSigns] = useState<VitalSign[]>([]);
-  const [goal, setGoal] = useState<VitalSignGoal | null>(null);
+  const [goal, setGoal] = useState<VitalSignGoal | undefined>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedChart, setSelectedChart] = useState<'weight' | 'blood_pressure' | 'heart_rate' | 'body_temperature'>('weight');
@@ -26,7 +26,7 @@ export default function VitalSignsPage() {
       if (err) throw err;
       setVitalSigns(data || []);
     } catch (err) {
-      handleError(err);
+      handleError(err instanceof Error ? err : new Error('バイタルサインの取得中にエラーが発生しました。'));
     }
   };
 
@@ -40,21 +40,22 @@ export default function VitalSignsPage() {
         .maybeSingle();
 
       if (err) throw err;
-      setGoal(data || null);
+      setGoal(data || undefined);
     } catch (err) {
-      handleError(err);
+      handleError(err instanceof Error ? err : new Error('目標値の取得中にエラーが発生しました。'));
     }
   };
 
   const handleError = (error: Error) => {
     console.error('Error:', error);
-    setError('データの取得中にエラーが発生しました。');
+    setError(error.message);
     setLoading(false);
   };
 
   useEffect(() => {
     Promise.all([fetchVitalSigns(), fetchGoal()])
-      .finally(() => setLoading(false));
+      .then(() => setLoading(false))
+      .catch((err) => handleError(err instanceof Error ? err : new Error('データの取得中にエラーが発生しました。')));
   }, []);
 
   if (loading) {
@@ -77,7 +78,7 @@ export default function VitalSignsPage() {
           <h3 className="text-lg font-semibold">トレンド</h3>
           <select
             value={selectedChart}
-            onChange={(e) => setSelectedChart(e.target.value as any)}
+            onChange={(e) => setSelectedChart(e.target.value as typeof selectedChart)}
             className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           >
             <option value="weight">体重</option>

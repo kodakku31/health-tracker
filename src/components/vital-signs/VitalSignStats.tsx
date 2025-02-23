@@ -7,7 +7,7 @@ import { ArrowUpIcon, ArrowDownIcon, MinusIcon } from '@heroicons/react/24/solid
 
 interface VitalSignStatsProps {
   vitalSigns: VitalSign[];
-  goal: VitalSignGoal | null;
+  goal?: VitalSignGoal;
 }
 
 export default function VitalSignStats({ vitalSigns, goal }: VitalSignStatsProps) {
