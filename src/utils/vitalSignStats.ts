@@ -20,7 +20,7 @@ interface VitalSignStats {
 
 export const calculateStats = (
   vitalSigns: VitalSign[],
-  goal: VitalSignGoal | null,
+  goal: VitalSignGoal | undefined,
   period: 'week' | 'month' = 'week'
 ): VitalSignStats => {
   const now = new Date();
@@ -36,7 +36,7 @@ export const calculateStats = (
 
   const calculateMetricStats = (
     getData: (record: VitalSign) => number | null,
-    getGoal: (goal: VitalSignGoal | null) => number | null
+    getGoal: (goal: VitalSignGoal | undefined) => number | null
   ): Stats => {
     const values = periodData
       .map(getData)
