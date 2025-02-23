@@ -50,12 +50,12 @@ export default function MealList({ meals, onDelete }: MealListProps) {
 
             {meal.image_url && (
               <div className="mt-4 relative w-full max-w-md aspect-video">
-                <Image
+                <img
                   src={meal.image_url}
                   alt={meal.name}
-                  fill
-                  className="rounded-lg object-cover"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  width={200}
+                  height={200}
+                  className="object-cover h-32 w-full"
                 />
               </div>
             )}

@@ -26,12 +26,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Get initial session
     const initAuth = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        setUser(session?.user ?? null);
-        console.log('Current session:', session); // デバッグ用
-      } catch (error) {
-        console.error('Error getting session:', error);
-      } finally {
+        const { data: { user } } = await supabase.auth.getUser();
+        setUser(user ?? null);
+        console.log('Current user:', user); // デバッグ用
+      } catch {
         setLoading(false);
       }
     };
@@ -54,8 +52,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await supabase.auth.signOut();
       window.location.href = '/';
-    } catch (error) {
-      console.error('Error signing out:', error);
+    } catch {
+      console.error('Error signing out:');
     }
   };
 

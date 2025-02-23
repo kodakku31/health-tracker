@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import ExerciseForm from '@/components/exercise/ExerciseForm';
@@ -13,38 +13,38 @@ export default function ExercisesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchExercises = async () => {
-      try {
-        const {
-          data: { user },
-          error: userError,
-        } = await supabase.auth.getUser();
+  const fetchExercises = useCallback(async () => {
+    try {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
 
-        if (userError) throw userError;
-        if (!user) {
-          router.push('/auth/signin');
-          return;
-        }
-
-        const { data, error } = await supabase
-          .from('exercises')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('start_time', { ascending: false });
-
-        if (error) throw error;
-        setExercises(data || []);
-      } catch (err) {
-        console.error('Error fetching exercises:', err);
-        setError('運動記録の取得中にエラーが発生しました。');
-      } finally {
-        setLoading(false);
+      if (userError) throw userError;
+      if (!user) {
+        router.push('/auth/signin');
+        return;
       }
-    };
 
-    fetchExercises();
+      const { data, error } = await supabase
+        .from('exercises')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('start_time', { ascending: false });
+
+      if (error) throw error;
+      setExercises(data || []);
+    } catch (err) {
+      console.error('Error fetching exercises:', err);
+      setError('運動記録の取得中にエラーが発生しました。');
+    } finally {
+      setLoading(false);
+    }
   }, [router]);
+
+  useEffect(() => {
+    fetchExercises();
+  }, [fetchExercises]);
 
   const handleExerciseSubmit = (exercise: Exercise) => {
     setExercises((prev) => [exercise, ...prev]);

@@ -7,7 +7,7 @@ import VitalSignForm from '@/components/vital-signs/VitalSignForm';
 import VitalSignList from '@/components/vital-signs/VitalSignList';
 import VitalSignStats from '@/components/vital-signs/VitalSignStats';
 import VitalSignGoalForm from '@/components/vital-signs/VitalSignGoalForm';
-import type { VitalSign, VitalSignGoal } from '@/types';
+import type { VitalSign, VitalSignGoal, AppError } from '@/types';
 
 export default function VitalSignsPage() {
   const router = useRouter();
@@ -48,7 +48,7 @@ export default function VitalSignsPage() {
 
         setVitalSigns(vitalSignsResult.data || []);
         setGoal(goalResult.data);
-      } catch (error: unknown) {
+      } catch (error: AppError) {
         console.error('Error fetching data:', error);
         setError('データの取得中にエラーが発生しました。');
       } finally {

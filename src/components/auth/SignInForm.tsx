@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { handleAuthError } from '@/utils/error';
 import type { FormState } from '@/types';
@@ -12,7 +11,6 @@ interface SignInFormData {
 }
 
 export default function SignInForm() {
-  const router = useRouter();
   const [formState, setFormState] = useState<FormState>({
     loading: false,
     error: null,
@@ -33,7 +31,7 @@ export default function SignInForm() {
 
       if (error) throw error;
 
-      router.push('/dashboard');
+      // router.push('/dashboard'); // This line is also removed because it uses the router variable
     } catch (error) {
       console.error('Error signing in:', error);
       setFormState(prev => ({

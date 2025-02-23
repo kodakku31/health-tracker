@@ -1,10 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { handleAuthError } from '@/utils/error';
-import type { FormState } from '@/types';
 
 interface SignUpFormData {
   email: string;
@@ -18,8 +15,10 @@ interface SignUpFormData {
 }
 
 export default function SignUpForm() {
-  const router = useRouter();
-  const [formState, setFormState] = useState<FormState>({
+  const [formState, setFormState] = useState<{
+    loading: false;
+    error: null | string;
+  }>({
     loading: false,
     error: null,
   });
@@ -74,12 +73,12 @@ export default function SignUpForm() {
 
       if (error) throw error;
 
-      router.push('/auth/verify');
+      window.location.href = '/auth/verify';
     } catch (error) {
       console.error('Error signing up:', error);
       setFormState(prev => ({
         ...prev,
-        error: handleAuthError(error),
+        error: (error as Error).message,
       }));
     } finally {
       setFormState(prev => ({ ...prev, loading: false }));
